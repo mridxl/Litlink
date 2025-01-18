@@ -1,0 +1,46 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id               String            @id @default(cuid())
+  name             String
+  email            String            @unique
+  password         String
+  books            Book[]
+  sentRequests     ExchangeRequest[] @relation("Requester")
+  receivedRequests ExchangeRequest[] @relation("Recipient")
+}
+
+model Book {
+  id                String            @id @default(cuid())
+  title             String
+  author            String
+  genre             String
+  userId            String
+  user              User              @relation(fields: [userId], references: [id])
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  requesterRequests ExchangeRequest[] @relation("RequesterBook")
+  recipientRequests ExchangeRequest[] @relation("RecipientBook")
+}
+
+model ExchangeRequest {
+  id              String   @id @default(cuid())
+  requesterId     String
+  requester       User     @relation("Requester", fields: [requesterId], references: [id])
+  requesterBookId String
+  requesterBook   Book     @relation("RequesterBook", fields: [requesterBookId], references: [id])
+  recipientId     String
+  recipient       User     @relation("Recipient", fields: [recipientId], references: [id])
+  recipientBookId String
+  recipientBook   Book     @relation("RecipientBook", fields: [recipientBookId], references: [id])
+  status          String   @default("PENDING")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
