@@ -1,14 +1,17 @@
 import { Route, Routes } from 'react-router';
-import Home from './pages/Home';
-import Login from './pages/Login';
+import AuthPage from './pages/AuthPages';
+import HomePage from '@/pages/HomePage';
+import Layout from '@/components/Layout';
 
 function App() {
   return (
     <>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<div>Not Found</div>} />
+        <Route path="/" element={<Layout />}>
+          <Route index element={<HomePage />} />
+        </Route>
+        <Route path="/login" element={<AuthPage type="login" />} />
+        <Route path="/register" element={<AuthPage type="register" />} />
       </Routes>
     </>
   );
