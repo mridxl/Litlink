@@ -1,14 +1,14 @@
 import { api } from '@/api/api';
-import { LoginData, LoginResponse, RegisterData } from '@/schemas/auth';
+import { LoginData, AuthResponse, RegisterData } from '@/schemas/auth';
 
 export const loginUser = async (data: LoginData) => {
   const response = await api.post('/auth/login', data);
-  return response.data as LoginResponse;
+  return response.data as AuthResponse;
 };
 
 export const registerUser = async (data: RegisterData) => {
   const response = await api.post('/auth/register', data);
-  return response.data as LoginResponse;
+  return response.data as AuthResponse;
 };
 
 export const setAuthToken = (token: string): void => {

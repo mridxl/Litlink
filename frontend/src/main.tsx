@@ -12,7 +12,13 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <Toaster richColors position="top-center" />
+        <Toaster
+          position="top-center"
+          richColors
+          toastOptions={{
+            className: 'text-center', // Center text for all toasts
+          }}
+        />
         <App />
       </BrowserRouter>
     </QueryClientProvider>

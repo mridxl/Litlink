@@ -6,36 +6,42 @@ import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 import { parseZodError } from '@/lib/utils';
 import {
+  AuthResponse,
   type LoginData,
   LoginDataSchema,
   type RegisterData,
   RegisterDataSchema,
 } from '@/schemas/auth';
-import {
-  getAuthToken,
-  loginUser,
-  registerUser,
-  setAuthToken,
-} from '@/services/auth-service';
+import { loginUser, registerUser, setAuthToken } from '@/services/auth-service';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import LoginForm from '@/components/auth/LoginForm';
 import RegisterForm from '@/components/auth/RegisterForm';
 import AnimationWrapper from '@/components/AnimationWrapper';
+import { authAtom } from '@/atom/authAtom';
+import { useRecoilState } from 'recoil';
 
 const Page = ({ type }: { type: 'login' | 'register' }) => {
   const navigate = useNavigate();
+  const [auth, setAuth] = useRecoilState(authAtom);
 
   const loginMutation = useMutation({
     mutationFn: loginUser,
-    onSuccess: (data) => {
-      setAuthToken(data.accessToken);
+    onSuccess: (data: AuthResponse) => {
+      setAuthToken(data.token);
+      setAuth({
+        isAuthenticated: true,
+        token: data.token,
+      });
       toast.success('Login successful');
       navigate('/');
     },
     onError: (error) => {
-      if (error instanceof AxiosError && error.response?.data?.error) {
-        toast.error(`Login failed: ${error.response.data.error}`);
+      if (error instanceof AxiosError) {
+        return toast.error(`Login failed: ${error.response?.data?.message}`);
+      } else if (error instanceof z.ZodError) {
+        const errorMessage = parseZodError(error);
+        toast.error(errorMessage);
       } else {
         toast.error('Something went wrong. Please try again later.');
       }
@@ -45,13 +51,20 @@ const Page = ({ type }: { type: 'login' | 'register' }) => {
   const registerMutation = useMutation({
     mutationFn: registerUser,
     onSuccess: (data) => {
-      setAuthToken(data.accessToken);
-      toast.success('Registration successful');
+      setAuthToken(data.token);
+      setAuth({
+        isAuthenticated: true,
+        token: data.token,
+      });
+      toast.success('registration successful');
       navigate('/');
     },
     onError: (error) => {
-      if (error instanceof AxiosError && error.response?.data?.error) {
-        toast.error(`Registration failed: ${error.response.data.error}`);
+      if (error instanceof AxiosError) {
+        return toast.error(`${error.response?.data?.message}`);
+      } else if (error instanceof z.ZodError) {
+        const errorMessage = parseZodError(error);
+        toast.error(errorMessage);
       } else {
         toast.error('Something went wrong. Please try again later.');
       }
@@ -73,13 +86,20 @@ const Page = ({ type }: { type: 'login' | 'register' }) => {
         registerMutation.mutate(credentials);
       }
     } catch (error) {
-      toast.error(parseZodError(error as z.ZodError));
+      if (error instanceof AxiosError) {
+        return toast.error(`${error.response?.data?.message}`);
+      } else if (error instanceof z.ZodError) {
+        const errorMessage = parseZodError(error);
+        toast.error(errorMessage);
+      } else {
+        toast.error('Something went wrong. Please try again later.');
+      }
     }
   };
 
   useEffect(() => {
-    const token = getAuthToken();
-    if (token) {
+    if (auth.isAuthenticated) {
+      toast.message('You are already logged in. Please logout to login again.');
       navigate('/');
     }
   }, []);
@@ -150,7 +170,7 @@ const Page = ({ type }: { type: 'login' | 'register' }) => {
                       Don't have an account?
                       <Link
                         to="/register"
-                        className="ml-1 text-black underline"
+                        className="ml-1 text-black underline underline-offset-2"
                       >
                         Register
                       </Link>
@@ -158,7 +178,10 @@ const Page = ({ type }: { type: 'login' | 'register' }) => {
                   ) : (
                     <p className="text-dark-grey text-center">
                       Already have an account?
-                      <Link to="/login" className="ml-1 text-black underline">
+                      <Link
+                        to="/login"
+                        className="ml-1 text-black underline underline-offset-2"
+                      >
                         Login
                       </Link>
                     </p>
