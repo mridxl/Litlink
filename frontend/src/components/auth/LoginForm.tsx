@@ -12,6 +12,7 @@ const LoginForm = () => {
         <Input
           className="border-black text-black placeholder:text-neutral-700"
           id="email"
+          name="email"
           type="text"
           placeholder="johndoe@gmail.com"
           required
@@ -22,6 +23,7 @@ const LoginForm = () => {
         <Input
           className="border-black text-black placeholder:text-neutral-700"
           id="password"
+          name="password"
           type={isVisible ? 'text' : 'password'}
           required
         />
